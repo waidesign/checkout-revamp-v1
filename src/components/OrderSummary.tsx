@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { ChevronDown, ChevronUp, X, Check, Info, CheckCircle2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, X, Check, Info, CheckCircle2, ShieldCheck } from 'lucide-react';
 
 interface OrderSummaryProps {
   hasAddon: boolean;
@@ -77,7 +77,13 @@ export default function OrderSummary({
 
       {/* Main Summary Display (Desktop always visible, Mobile in collapsible) */}
       <div className={`${isExpanded ? 'block' : 'hidden lg:block'} pt-2 lg:pt-0`}>
-        <h2 className="text-xl font-bold text-slate-900 mb-6 hidden lg:block">Summary</h2>
+        <div className="hidden lg:flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold text-slate-900">Summary</h2>
+          <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">
+            <ShieldCheck className="w-4 h-4 text-green-600" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-700">Secure Checkout</span>
+          </div>
+        </div>
         
         <div className="space-y-4">
           <div className="flex justify-between items-start text-sm pb-4 border-b border-slate-200">
