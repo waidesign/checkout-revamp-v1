@@ -1,13 +1,13 @@
 import CheckoutHeader from './components/CheckoutHeader';
 import VehicleIdentity from './components/VehicleIdentity';
-import PaymentForm from './components/PaymentForm';
+import PaymentForm, { type PaymentFormHandle } from './components/PaymentForm';
 import OrderSummary from './components/OrderSummary';
 import Reviews from './components/Reviews';
 import Footer from './components/Footer';
 import StickyMobileCTA from './components/StickyMobileCTA';
 import { MessageCircle } from 'lucide-react';
 import { Agentation } from 'agentation';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 const BASE_PRICE = 19.25;
 const ADDON_PRICE = 9.65;
@@ -15,6 +15,7 @@ const ADDON_PRICE = 9.65;
 export default function App() {
   const [hasAddon, setHasAddon] = useState(false);
   const [appliedDiscount, setAppliedDiscount] = useState(0);
+  const paymentFormRef = useRef<PaymentFormHandle>(null);
 
   const rawTotal = hasAddon ? BASE_PRICE + ADDON_PRICE : BASE_PRICE;
   const totalPrice = Math.max(0, rawTotal - appliedDiscount).toFixed(2);
@@ -35,7 +36,7 @@ export default function App() {
             setAppliedDiscount={setAppliedDiscount}
             totalPrice={totalPrice}
           />
-          <PaymentForm totalPrice={totalPrice} />
+          <PaymentForm ref={paymentFormRef} totalPrice={totalPrice} />
           <Reviews />
           <Footer />
         </div>
@@ -47,7 +48,7 @@ export default function App() {
           <div className="w-1/2 flex justify-end px-8 xl:px-12 py-12 bg-white">
             <div className="w-full max-w-[520px] space-y-12">
               <VehicleIdentity />
-              <PaymentForm totalPrice={totalPrice} />
+              <PaymentForm ref={paymentFormRef} totalPrice={totalPrice} />
               <Footer />
             </div>
           </div>
@@ -69,7 +70,7 @@ export default function App() {
 
       </main>
 
-      <StickyMobileCTA totalPrice={totalPrice} />
+      <StickyMobileCTA totalPrice={totalPrice} onValidate={() => paymentFormRef.current?.triggerValidation()} />
 
       {/* Floating Chat Widget */}
       <button 

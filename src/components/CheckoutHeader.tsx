@@ -21,7 +21,7 @@ export default function CheckoutHeader() {
           <div className="w-full max-w-[420px] flex justify-end">
             <button
               type="button"
-              className="text-slate-600 hover:text-slate-900 text-sm font-semibold hover:underline underline-offset-4 cursor-pointer transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-200"
+              className="text-slate-600 hover:text-slate-900 text-sm font-semibold cursor-pointer transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-200"
             >
               Contact us
             </button>
@@ -40,7 +40,7 @@ export default function CheckoutHeader() {
         </div>
         <button
           type="button"
-          className="text-slate-600 hover:text-slate-900 text-sm font-semibold hover:underline underline-offset-4 cursor-pointer transition-colors px-2.5 py-1 rounded-lg hover:bg-slate-50"
+          className="text-slate-600 hover:text-slate-900 text-sm font-semibold cursor-pointer transition-colors px-2.5 py-1 rounded-lg hover:bg-slate-50"
         >
           Contact us
         </button>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, forwardRef, useImperativeHandle } from 'react';
 import { Lock, CreditCard, ChevronDown, ShieldCheck } from 'lucide-react';
 import applePayIcon from '../assets/images/applepay.svg';
 import googlePayIcon from '../assets/images/googlepay.svg';
@@ -12,7 +12,52 @@ interface PaymentFormProps {
   totalPrice: string;
 }
 
-export default function PaymentForm({ totalPrice }: PaymentFormProps) {
+export interface PaymentFormHandle {
+  triggerValidation: () => void;
+}
+
+const PaymentForm = forwardRef<PaymentFormHandle, PaymentFormProps>(function PaymentForm({ totalPrice }, ref) {
+  const [fields, setFields] = useState({ cardNumber: '', expiry: '', cvc: '', zip: '' });
+  const [touched, setTouched] = useState({ cardNumber: false, expiry: false, cvc: false, zip: false });
+
+  const errors = {
+    cardNumber: !fields.cardNumber.trim(),
+    expiry: !fields.expiry.trim(),
+    cvc: !fields.cvc.trim(),
+    zip: !fields.zip.trim(),
+  };
+
+  const hasError = (field: keyof typeof errors) => touched[field] && errors[field];
+
+  const inputClass = (field: keyof typeof errors) =>
+    `block w-full rounded-xl px-4 py-3 h-[48px] text-slate-900 bg-white border transition-all outline-none ${
+      hasError(field)
+        ? 'border-red-400 ring-1 ring-red-400 bg-red-50 placeholder:text-red-300'
+        : 'border-slate-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-600'
+    }`;
+
+  useImperativeHandle(ref, () => ({
+    triggerValidation() {
+      // Mark all fields as touched to show errors
+      setTouched({ cardNumber: true, expiry: true, cvc: true, zip: true });
+
+      // Scroll to first empty field
+      const fieldIds: Array<[keyof typeof errors, string]> = [
+        ['cardNumber', 'cc-number'],
+        ['expiry', 'cc-exp'],
+        ['cvc', 'cc-csc'],
+        ['zip', 'postal-code'],
+      ];
+      for (const [field, id] of fieldIds) {
+        if (errors[field]) {
+          const el = document.getElementById(id);
+          el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setTimeout(() => el?.focus(), 400);
+          break;
+        }
+      }
+    },
+  }));
 
   return (
     <div className="space-y-8">
@@ -68,7 +113,7 @@ export default function PaymentForm({ totalPrice }: PaymentFormProps) {
 
         <div className="space-y-4">
           <div>
-            <label htmlFor="cc-number" className="block text-sm font-medium text-slate-700 mb-1.5">Card Number</label>
+            <label htmlFor="cc-number" className={`block text-sm font-medium mb-1.5 ${hasError('cardNumber') ? 'text-red-500' : 'text-slate-700'}`}>Card Number{hasError('cardNumber') && <span className="ml-1 font-normal">— required</span>}</label>
             <div className="relative">
               <input
                 type="text"
@@ -76,33 +121,46 @@ export default function PaymentForm({ totalPrice }: PaymentFormProps) {
                 inputMode="numeric"
                 autoComplete="cc-number"
                 placeholder="0000 0000 0000 0000"
-                className="block w-full rounded-xl border-slate-200 pl-11 pr-4 py-3 h-[48px] text-slate-900 bg-white border focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-all outline-none"
+                value={fields.cardNumber}
+                onChange={e => setFields(f => ({ ...f, cardNumber: e.target.value }))}
+                onBlur={() => setTouched(t => ({ ...t, cardNumber: true }))}
+                className={`block w-full rounded-xl pl-11 pr-4 py-3 h-[48px] text-slate-900 bg-white border transition-all outline-none ${
+                  hasError('cardNumber')
+                    ? 'border-red-400 ring-1 ring-red-400 bg-red-50 placeholder:text-red-300'
+                    : 'border-slate-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-600'
+                }`}
               />
-              <CreditCard className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <CreditCard className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 ${hasError('cardNumber') ? 'text-red-400' : 'text-slate-400'}`} />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="cc-exp" className="block text-sm font-medium text-slate-700 mb-1.5">Expiration</label>
+              <label htmlFor="cc-exp" className={`block text-sm font-medium mb-1.5 ${hasError('expiry') ? 'text-red-500' : 'text-slate-700'}`}>Expiration{hasError('expiry') && <span className="ml-1 font-normal">— required</span>}</label>
               <input
                 type="text"
                 id="cc-exp"
                 inputMode="numeric"
                 autoComplete="cc-exp"
                 placeholder="MM / YY"
-                className="block w-full rounded-xl border-slate-200 px-4 py-3 h-[48px] text-slate-900 bg-white border focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-all outline-none"
+                value={fields.expiry}
+                onChange={e => setFields(f => ({ ...f, expiry: e.target.value }))}
+                onBlur={() => setTouched(t => ({ ...t, expiry: true }))}
+                className={inputClass('expiry')}
               />
             </div>
             <div>
-              <label htmlFor="cc-csc" className="block text-sm font-medium text-slate-700 mb-1.5">CVC</label>
+              <label htmlFor="cc-csc" className={`block text-sm font-medium mb-1.5 ${hasError('cvc') ? 'text-red-500' : 'text-slate-700'}`}>CVC{hasError('cvc') && <span className="ml-1 font-normal">— required</span>}</label>
               <input
                 type="text"
                 id="cc-csc"
                 inputMode="numeric"
                 autoComplete="cc-csc"
                 placeholder="123"
-                className="block w-full rounded-xl border-slate-200 px-4 py-3 h-[48px] text-slate-900 bg-white border focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-all outline-none"
+                value={fields.cvc}
+                onChange={e => setFields(f => ({ ...f, cvc: e.target.value }))}
+                onBlur={() => setTouched(t => ({ ...t, cvc: true }))}
+                className={inputClass('cvc')}
               />
             </div>
           </div>
@@ -316,14 +374,17 @@ export default function PaymentForm({ totalPrice }: PaymentFormProps) {
               </div>
             </div>
             <div>
-              <label htmlFor="postal-code" className="block text-sm font-medium text-slate-700 mb-1.5">ZIP Code</label>
+              <label htmlFor="postal-code" className={`block text-sm font-medium mb-1.5 ${hasError('zip') ? 'text-red-500' : 'text-slate-700'}`}>ZIP Code{hasError('zip') && <span className="ml-1 font-normal">— required</span>}</label>
               <input
                 type="text"
                 id="postal-code"
                 inputMode="numeric"
                 autoComplete="postal-code"
                 placeholder="10001"
-                className="block w-full rounded-xl border-slate-200 px-4 py-3 h-[48px] text-slate-900 bg-white border focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-all outline-none"
+                value={fields.zip}
+                onChange={e => setFields(f => ({ ...f, zip: e.target.value }))}
+                onBlur={() => setTouched(t => ({ ...t, zip: true }))}
+                className={inputClass('zip')}
               />
             </div>
           </div>
@@ -332,8 +393,30 @@ export default function PaymentForm({ totalPrice }: PaymentFormProps) {
 
       {/* Trust & Guarantee */}
       <div className="space-y-4 pt-4">
-        <div className="hidden lg:block space-y-3">
-          <button className="w-full h-14 bg-blue-600 text-white rounded-xl font-bold text-lg hover:bg-blue-700 active:scale-[0.99] transition-all duration-150 shadow-md shadow-blue-600/20 hover:shadow-lg hover:shadow-blue-600/30 flex items-center justify-center gap-2 cursor-pointer">
+        <div className="space-y-3">
+          <button 
+            id="pay-button" 
+            type="button"
+            onClick={() => {
+              // Trigger validation via imperative handle logic directly
+              setTouched({ cardNumber: true, expiry: true, cvc: true, zip: true });
+              const fieldIds: Array<[keyof typeof errors, string]> = [
+                ['cardNumber', 'cc-number'],
+                ['expiry', 'cc-exp'],
+                ['cvc', 'cc-csc'],
+                ['zip', 'postal-code'],
+              ];
+              for (const [field, id] of fieldIds) {
+                if (errors[field]) {
+                  const el = document.getElementById(id);
+                  el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  setTimeout(() => el?.focus(), 400);
+                  break;
+                }
+              }
+            }}
+            className="w-full h-14 bg-blue-600 text-white rounded-xl font-bold text-lg hover:bg-blue-700 active:scale-[0.99] transition-all duration-150 shadow-md shadow-blue-600/20 hover:shadow-lg hover:shadow-blue-600/30 flex items-center justify-center gap-2 cursor-pointer"
+          >
             Pay ${totalPrice}
             <Lock className="w-4 h-4" />
           </button>
@@ -347,9 +430,9 @@ export default function PaymentForm({ totalPrice }: PaymentFormProps) {
             <span className="font-semibold text-slate-900">100% money-back guarantee</span> if the report doesn't deliver.
           </p>
         </div>
-
-
       </div>
     </div>
   );
-}
+});
+
+export default PaymentForm;
